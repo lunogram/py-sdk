@@ -2,6 +2,8 @@ url = "https://console.lab.lunogram.io/"
 api = "/api/client/"
 destination = url + api
 
+# API reference
+
 class _user:
     base = destination + 'users'
     events = destination + 'users/events'
