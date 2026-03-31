@@ -16,11 +16,14 @@ class httphandler:
         }
 
         req = requests.request(method, url, data=json.dumps(data), headers=head)
-        
+
+        if not (200 <= req.status_code < 300):
+            return (req, f"HTTP {req.status_code}")
+
         try:
             return (req.json())
         except json.JSONDecodeError:
-            return (req, "Couldn't detect response as JSON")
+            return (req, "Response is not a JSON object")
         except Exception as e:
             return (req, e)
         
