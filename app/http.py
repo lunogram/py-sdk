@@ -4,6 +4,7 @@ from typing import Literal
 
 http_methods = Literal["GET", "POST", "DELETE"]
 
+# state of the art http handler
 class httphandler:
     def __init__(self, api_key):
         self.api_key = api_key
@@ -14,14 +15,14 @@ class httphandler:
             'Authorization': f"{self.api_key}",
         }
 
-        req = requests.request(method, url, data=data, headers=head)
-
+        req = requests.request(method, url, data=json.dumps(data), headers=head)
+        
         try:
             return (req.json())
         except json.JSONDecodeError:
             return (req, "Couldn't detect response as JSON")
-        except:
-            return (req, )
+        except Exception as e:
+            return (req, e)
         
     def get(self, url: str):
         req = self.request("GET", url)
