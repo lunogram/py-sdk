@@ -1,20 +1,9 @@
 from typing import Literal
-from app.http import httphandler
-from utils.reference import client
+
+from .http import httphandler
+from ..utils.reference import client
 
 entities = Literal["user", "organization"]
-
-# i don't think this is used at all but i'll need to double check that
-def upsert(api_key, data, entity: entities):
-    handler = httphandler(api_key)
-
-    match(entity):
-        case 'user':
-            req = handler.post(client.user.base, data)
-        case 'organization':
-            req = handler.post(client.organization.base, data)
-    
-    return req
 
 # .events and .scheduled objects are defined seperately and later integrated with the corresponding entities
 

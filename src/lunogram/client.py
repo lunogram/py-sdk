@@ -1,12 +1,9 @@
-import load_dotenv
 from random import randint
-import utils.seed as seed
-from app.object import user, organization
 
-load_dotenv.load_dotenv()
+from .utils import seed
+from .app import user, organization
 
-# initialize final lunogram object
-class lunogram:
+class Lunogram:
     def __init__(self, api_key):
         self.user = user(api_key)
         self.organization = organization(api_key)
@@ -45,7 +42,7 @@ def main() -> None:
     """
     Example use ->
     
-    client = lunogram("Your API key here")
+    client = Lunogram("Your API key here")
 
     > All sdk actions return a list with the api response on index 0, possible errors on index 1
 
