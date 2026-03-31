@@ -4,6 +4,7 @@ from utils.reference import client
 
 entities = Literal["user", "organization"]
 
+# i don't think this is used at all but i'll need to double check that
 def upsert(api_key, data, entity: entities):
     handler = httphandler(api_key)
 
@@ -14,6 +15,8 @@ def upsert(api_key, data, entity: entities):
             req = handler.post(client.organization.base, data)
     
     return req
+
+# .events and .scheduled objects are defined seperately and later integrated with the corresponding entities
 
 class events:
     def __init__(self, api_key, entity: entities):
