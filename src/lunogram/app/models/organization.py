@@ -10,12 +10,12 @@ class organization:
         self.scheduled = scheduled(api_key, entity='organization')
         self.handler = httphandler(api_key)
 
-    def upsert(self, data: OrganizationEvent):
+    def upsert(self, data: UpsertOrganization):
         req = self.handler.post(client.organization.base, data)
 
         return req
     
-    def delete(self, data: OrganizationEvent):
+    def delete(self, data: DeleteOrganization):
         req = self.handler.delete(client.organization.base, data)
 
         return req
