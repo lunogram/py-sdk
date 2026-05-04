@@ -1,4 +1,4 @@
-url = "https://console.lab.lunogram.io/"
+url = "https://console.lunogram.com/"
 api = "/api/client/"
 destination = url + api
 
