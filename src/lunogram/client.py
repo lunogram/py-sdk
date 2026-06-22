@@ -1,12 +1,17 @@
 from random import randint
 
 from .utils import seed
+from .utils.reference import client as Reference
 from .app import user, organization
 
 class Lunogram:
-    def __init__(self, api_key):
-        self.user = user(api_key)
-        self.organization = organization(api_key)
+    def __init__(self, api_key, project_id):
+        # Every Client API endpoint is scoped to a project. The project UUID is
+        # supplied once here and injected into every request path automatically;
+        # callers never pass it per request.
+        self.reference = Reference(project_id)
+        self.user = user(api_key, self.reference)
+        self.organization = organization(api_key, self.reference)
 
 # Seeder data to generate a random user should you need it, this is mainly for testing purposes
 def random_user():
@@ -41,8 +46,11 @@ def random_user():
 def main() -> None:
     """
     Example use ->
-    
-    client = Lunogram("Your API key here")
+
+    client = Lunogram("Your API key here", "your-project-uuid-here")
+
+    > The project UUID is required and is injected into every Client API path,
+    > e.g. /api/client/projects/<project_id>/users
 
     > All sdk actions return a list with the api response on index 0, possible errors on index 1
 
