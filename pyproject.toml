@@ -11,6 +11,15 @@ requires-python = ">=3.10"
 dependencies = [
     "python-dotenv>=1.0.0",
     "requests>=2.31.0",
+    "pydantic[email]>=2.6",
+]
+
+[project.optional-dependencies]
+# Code generation toolchain. Pinned so generated output is deterministic and
+# the CI drift check is stable. Run `make generate` after bumping.
+dev = [
+    "datamodel-code-generator==0.26.5",
+    "pytest>=8.0",
 ]
 
 [project.urls]
