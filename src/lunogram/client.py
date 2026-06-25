@@ -5,11 +5,12 @@ from .utils.reference import client as Reference
 from .app import user, organization, push, sessions
 
 class Lunogram:
-    def __init__(self, api_key, project_id):
+    def __init__(self, api_key, project_id, url_endpoint=None):
         # Every Client API endpoint is scoped to a project. The project UUID is
         # supplied once here and injected into every request path automatically;
-        # callers never pass it per request.
-        self.reference = Reference(project_id)
+        # callers never pass it per request. `url_endpoint` optionally overrides
+        # the API host (e.g. for a staging environment).
+        self.reference = Reference(project_id, url_endpoint)
         self.user = user(api_key, self.reference)
         self.organization = organization(api_key, self.reference)
         self.push = push(api_key, self.reference)

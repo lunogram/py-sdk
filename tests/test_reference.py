@@ -63,14 +63,22 @@ def test_exactly_one_project_prefix(name, getter):
     expected = f"/projects/{PROJECT_ID}/"
     # The load-bearing invariant: exactly one project-scoped prefix per resource.
     assert url.count(expected) == 1, f"{name}: expected exactly one prefix in {url!r}"
-    # NOTE: a pre-existing bug (from PR #1) produces a double slash after the
-    # host (`...com//api/client/...`) because the base URL has a trailing slash
-    # and the API path a leading one. That is unrelated to this codegen change
-    # and left alone; we assert the path segment rather than the exact host join.
     assert f"/api/client/projects/{PROJECT_ID}/" in url
+    # The endpoint joins cleanly — no doubled slash after the host.
+    assert "//api/client/" not in url
 
 
 def test_paths_are_under_client_api():
     ref = Reference(PROJECT_ID)
     assert ref.user.base.endswith(f"/projects/{PROJECT_ID}/users")
     assert ref.organization.events.endswith(f"/projects/{PROJECT_ID}/organizations/events")
+
+
+def test_url_endpoint_override():
+    ref = Reference(PROJECT_ID, "https://staging.example.com/api")
+    assert ref.user.base == f"https://staging.example.com/api/client/projects/{PROJECT_ID}/users"
+
+
+def test_default_endpoint():
+    ref = Reference(PROJECT_ID)
+    assert ref.user.base == f"https://console.lunogram.com/api/client/projects/{PROJECT_ID}/users"

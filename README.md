@@ -20,6 +20,7 @@ from lunogram import Lunogram, random_user
 client = Lunogram(
     api_key="your-api-key",
     project_id="11111111-2222-3333-4444-555555555555",  # your project UUID
+    # url_endpoint="https://console.lunogram.com/api",  # optional host override
 )
 
 # Upsert a user

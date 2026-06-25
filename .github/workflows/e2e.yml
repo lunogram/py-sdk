@@ -1,0 +1,30 @@
+name: E2E Tests
+
+on:
+  push:
+
+jobs:
+  e2e:
+    name: "E2E Tests"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run E2E tests
+        run: python -m pytest tests/test_e2e.py -v
+        env:
+          LUNOGRAM_API_KEY: ${{ secrets.LUNOGRAM_API_KEY }}
+          LUNOGRAM_API_URL: ${{ secrets.LUNOGRAM_API_URL }}
+          LUNOGRAM_PROJECT_ID: ${{ secrets.LUNOGRAM_PROJECT_ID }}
