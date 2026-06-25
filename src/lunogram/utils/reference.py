@@ -12,10 +12,14 @@ DEFAULT_ENDPOINT = "https://console.lunogram.com/api"
 
 
 def _client_base(url_endpoint: str | None) -> str:
-    # Normalize the endpoint to a single trailing-slash `.../client/` base, so
-    # the resource paths join cleanly with no doubled or missing slashes.
+    # The Client API always lives under `/api/client/...`. Accept the endpoint
+    # with or without a trailing `/api` (mirrors the JS SDK's `urlEndpoint`
+    # handling) and always re-add it, so the resource paths join cleanly with no
+    # missing or doubled segments.
     endpoint = (url_endpoint or DEFAULT_ENDPOINT).rstrip("/")
-    return f"{endpoint}/client/"
+    if endpoint.endswith("/api"):
+        endpoint = endpoint[: -len("/api")]
+    return f"{endpoint}/api/client/"
 
 
 def _validate_project_id(project_id: str) -> str:
