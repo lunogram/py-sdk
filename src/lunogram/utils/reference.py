@@ -1,13 +1,21 @@
 from uuid import UUID
 
-url = "https://console.lunogram.com/"
-api = "/api/client/"
-destination = url + api
+# Default Client API endpoint. Includes the `/api` prefix; the `/client/...`
+# path is appended onto it. Override per-client with `url_endpoint` (e.g. to
+# point at a staging environment) — the same role as the JS SDK's `urlEndpoint`.
+DEFAULT_ENDPOINT = "https://console.lunogram.com/api"
 
 # Every authenticated Client API endpoint is scoped to a single project. The
 # project UUID is supplied once when the Lunogram client is constructed and is
 # injected here as a `/projects/<project_id>/` path segment, so callers never
 # pass it per request.
+
+
+def _client_base(url_endpoint: str | None) -> str:
+    # Normalize the endpoint to a single trailing-slash `.../client/` base, so
+    # the resource paths join cleanly with no doubled or missing slashes.
+    endpoint = (url_endpoint or DEFAULT_ENDPOINT).rstrip("/")
+    return f"{endpoint}/client/"
 
 
 def _validate_project_id(project_id: str) -> str:
@@ -58,10 +66,10 @@ class _auth_methods:
         return self._project + f'auth-methods/{auth_method_id}/sessions'
 
 class client:
-    def __init__(self, project_id: str):
+    def __init__(self, project_id: str, url_endpoint: str | None = None):
         self.project_id = _validate_project_id(project_id)
         # e.g. https://console.lunogram.com/api/client/projects/<project_id>/
-        project = destination + f'projects/{self.project_id}/'
+        project = _client_base(url_endpoint) + f'projects/{self.project_id}/'
 
         self.user = _user(project)
         self.organization = _org(project)
