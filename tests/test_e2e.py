@@ -39,8 +39,12 @@ def client():
 
 def ok(result):
     # The facade returns the parsed JSON body (dict) or a Response on success,
-    # and a ``(response, error)`` tuple on failure. Fail loudly with the body.
-    assert not isinstance(result, tuple), f"request failed: {result}"
+    # and a ``(response, error)`` tuple on failure. Fail loudly with the
+    # server's response body to make the reason debuggable.
+    if isinstance(result, tuple):
+        response, error = result[0], result[1]
+        body = getattr(response, "text", "")
+        raise AssertionError(f"request failed: {error} — {body[:600]}")
     return result
 
 
