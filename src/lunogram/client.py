@@ -2,7 +2,7 @@ from random import randint
 
 from .utils import seed
 from .utils.reference import client as Reference
-from .app import user, organization
+from .app import user, organization, push, sessions
 
 class Lunogram:
     def __init__(self, api_key, project_id):
@@ -12,6 +12,8 @@ class Lunogram:
         self.reference = Reference(project_id)
         self.user = user(api_key, self.reference)
         self.organization = organization(api_key, self.reference)
+        self.push = push(api_key, self.reference)
+        self.sessions = sessions(api_key, self.reference)
 
 # Seeder data to generate a random user should you need it, this is mainly for testing purposes
 def random_user():

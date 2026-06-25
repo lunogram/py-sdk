@@ -1,36 +1,34 @@
 # Spec source
 
-`client.yaml` in this directory is **vendored** (copied verbatim) from the
-platform repository's OpenAPI spec. It is the single input to the code generator
-(`make generate` → `src/lunogram/gen/models.py`).
+`client.yaml` in this directory is **vendored** (copied verbatim) from a Lunogram
+platform **release**. It is the single input to the code generator
+(`make generate` → `src/lunogram/gen/models.py`). Do not hand-edit either file.
 
 | | |
 | --- | --- |
 | Source repo | https://github.com/lunogram/platform |
-| Spec path | `internal/http/controllers/v1/client/oapi/resources.yml` |
-| Pinned ref | `a12f901dc98e7ced44efbad27a388e8bf5ee0f3a` |
+| Pinned tag | `v0.1.0-rc.1` |
+| Spec asset | `client.yaml` |
 
-The pinned ref is the head of platform PR #262 (the project-in-URL change). It is
-a **branch/commit pin during development** — pinning to a commit means the spec
-is fetchable from the public repo via the `raw.githubusercontent.com` URL with
-no platform release required. Flip this to a `v*.*.*` release tag once the
-platform cuts one.
+Every tagged platform release publishes the client OpenAPI spec as a `client.yaml`
+asset (see the platform's `.github/workflows/release.yml` → `openapi-specs` job),
+so the spec is fetched from a stable, versioned, immutable source — no platform
+checkout or branch pin required.
 
-## Raw URL
+## Release asset URL
 
 ```
-https://raw.githubusercontent.com/lunogram/platform/a12f901dc98e7ced44efbad27a388e8bf5ee0f3a/internal/http/controllers/v1/client/oapi/resources.yml
+https://github.com/lunogram/platform/releases/download/v0.1.0-rc.1/client.yaml
 ```
 
 ## Refreshing the spec
 
-To pull a newer spec, update the pinned ref above and re-fetch:
+To track a newer release, update the **Pinned tag** above and re-fetch:
 
 ```bash
-REF=a12f901dc98e7ced44efbad27a388e8bf5ee0f3a
-curl -fsSL "https://raw.githubusercontent.com/lunogram/platform/$REF/internal/http/controllers/v1/client/oapi/resources.yml" -o spec/client.yaml
+TAG=v0.1.0-rc.1
+curl -fsSL "https://github.com/lunogram/platform/releases/download/$TAG/client.yaml" -o spec/client.yaml
 make generate
 ```
 
-The `spec-sync` GitHub Actions workflow automates exactly this on a weekly
-schedule and opens a PR when the spec or generated code changes.
+Commit `spec/client.yaml` and `src/lunogram/gen/models.py` together.
