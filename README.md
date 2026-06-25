@@ -69,6 +69,51 @@ segment:
 Authentication is unchanged — the same API key / token is used. Only the URL
 gained the project segment.
 
+## More resources
+
+The same `Lunogram` client exposes the full Client API surface. Every method
+accepts either a plain dict or the matching generated model from
+`lunogram.gen.models`.
+
+```python
+# Inbox — users and organizations share the same surface
+# (client.organization.inbox.* mirrors client.user.inbox.*)
+client.user.inbox.create([
+    {
+        "target": [{"external_id": "user_123"}],
+        "identifier": {"external_id": "msg-1"},
+        "channel": "inbox",
+        "content": {"title": "Welcome", "body": "Thanks for joining!"},
+    },
+])
+messages = client.user.inbox.query(source="default", external_id="user_123", channel="inbox", status="unread")
+counts = client.user.inbox.count(source="default", external_id="user_123", channel="inbox")
+client.user.inbox.mark_read([{"target": [{"external_id": "user_123"}], "message_id": "msg-1"}])
+client.user.inbox.mark_archived([{"target": [{"external_id": "user_123"}], "message_id": "msg-1"}])
+
+# Organization membership
+client.organization.add_user({
+    "organization": {"identifier": [{"external_id": "org_123"}]},
+    "user": {"identifier": [{"external_id": "user_123"}]},
+})
+client.organization.remove_user({
+    "organization": {"identifier": [{"external_id": "org_123"}]},
+    "user": {"identifier": [{"external_id": "user_123"}]},
+})
+
+# Devices & push
+vapid = client.push.get_vapid_public_key()
+client.user.devices.register({
+    "identifier": [{"external_id": "user_123"}],
+    "device_id": "device-1",
+    "os": "web",
+    "config": {"endpoint": "https://push.example.com/...", "keys": {"p256dh": "...", "auth": "..."}},
+})
+
+# Sessions — mint a short-lived token for an end user (server-side)
+session = client.sessions.create("auth-method-uuid", {"user_id": "user_123"})
+```
+
 ## Architecture: spec-driven, layered
 
 The SDK is split into a **generated low-level layer** and a **hand-written
@@ -89,12 +134,13 @@ models flow straight through to the request body with **no camelCase↔snake_cas
 mapping layer**. A generated model and a plain dict are both accepted by every
 method; models are dumped with `model_dump(mode="json", exclude_none=True)`.
 
-### The spec is vendored (no platform release needed)
+### The spec is vendored from a platform release
 
-`spec/client.yaml` is copied verbatim from the platform repo at a **pinned
-commit**. `spec/SOURCE.md` records the source repo, spec path and ref. Pinning to
-a commit means any ref is fetchable from the public repo via the raw URL, so no
-platform release is required (flip to a `v*.*.*` tag once the platform cuts one).
+`spec/client.yaml` is copied verbatim from a Lunogram platform **release**.
+`spec/SOURCE.md` records the source repo, pinned tag and asset URL. Every tagged
+release publishes the client OpenAPI spec as a `client.yaml` asset, so the spec
+is fetched from a stable, versioned, immutable source. Bumping the pin is a
+manual edit to `spec/SOURCE.md` followed by `make generate`.
 
 ### Regenerating the models
 
@@ -117,6 +163,3 @@ regenerate.
   `git diff --exit-code src/lunogram/gen` as a **drift check** (fails if the
   committed generated code is stale), builds the wheel, import-smoke-tests, and
   runs `pytest`.
-- **`spec-sync.yml`** (weekly cron + manual dispatch) — re-fetches the spec from
-  the ref in `spec/SOURCE.md`, regenerates, and opens a PR via
-  `peter-evans/create-pull-request` when anything changed.
