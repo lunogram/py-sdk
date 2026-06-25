@@ -44,14 +44,7 @@ def ok(result):
     if isinstance(result, tuple):
         response, error = result[0], result[1]
         body = getattr(response, "text", "")
-        url = getattr(response, "url", "?")
-        history = getattr(response, "history", [])
-        sent = getattr(response, "request", None)
-        auth_sent = bool(sent and sent.headers.get("Authorization")) if sent else None
-        raise AssertionError(
-            f"request failed: {error} — url={url} redirects={len(history)} "
-            f"auth_sent={auth_sent} — {body[:400]}"
-        )
+        raise AssertionError(f"request failed: {error} — {body[:600]}")
     return result
 
 
