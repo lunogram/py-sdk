@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from lunogram import Lunogram
-from lunogram.gen.models import CreateSession
+from lunogram.gen.models import CreateSession, IdentifyRequest
 
 PROJECT_ID = "11111111-2222-3333-4444-555555555555"
 API_KEY = "test-key"
@@ -129,3 +129,101 @@ def test_session_minting_accepts_a_generated_model(captured):
     client = Lunogram(API_KEY, PROJECT_ID)
     client.sessions.create("auth-method-1", CreateSession(user_id="user-1"))
     assert json.loads(last(captured)["data"]) == {"user_id": "user-1"}
+
+
+def test_user_crud_and_events(captured):
+    client = Lunogram(API_KEY, PROJECT_ID)
+
+    client.user.upsert({"identifier": [{"external_id": "u"}], "email": "a@b.com"})
+    assert last(captured)["method"] == "POST"
+    assert last(captured)["url"].endswith(f"{PREFIX}users")
+
+    client.user.delete({"identifier": [{"external_id": "u"}]})
+    assert last(captured)["method"] == "DELETE"
+    assert last(captured)["url"].endswith(f"{PREFIX}users")
+
+    client.user.events.post([{"name": "evt", "identifier": [{"external_id": "u"}], "data": {}}])
+    assert last(captured)["method"] == "POST"
+    assert last(captured)["url"].endswith(f"{PREFIX}users/events")
+
+
+def test_user_scheduled(captured):
+    client = Lunogram(API_KEY, PROJECT_ID)
+
+    client.user.scheduled.post({"name": "r", "identifier": [{"external_id": "u"}]})
+    assert last(captured)["method"] == "POST"
+    assert last(captured)["url"].endswith(f"{PREFIX}users/scheduled")
+
+    client.user.scheduled.delete({"name": "r", "identifier": [{"external_id": "u"}]})
+    assert last(captured)["method"] == "DELETE"
+    assert last(captured)["url"].endswith(f"{PREFIX}users/scheduled")
+
+
+def test_organization_crud_events_scheduled(captured):
+    client = Lunogram(API_KEY, PROJECT_ID)
+
+    client.organization.upsert({"identifier": [{"external_id": "o"}], "name": "Acme"})
+    assert last(captured)["method"] == "POST"
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations")
+
+    client.organization.delete({"identifier": [{"external_id": "o"}]})
+    assert last(captured)["method"] == "DELETE"
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations")
+
+    client.organization.events.post([{"name": "evt", "identifier": [{"external_id": "o"}]}])
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/events")
+
+    client.organization.scheduled.post({"name": "s", "identifier": [{"external_id": "o"}]})
+    assert last(captured)["method"] == "POST"
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/scheduled")
+
+    client.organization.scheduled.delete({"name": "s", "identifier": [{"external_id": "o"}]})
+    assert last(captured)["method"] == "DELETE"
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/scheduled")
+
+
+def test_organization_inbox_write_endpoints(captured):
+    client = Lunogram(API_KEY, PROJECT_ID)
+
+    client.organization.inbox.create([
+        {"target": [{"external_id": "o"}], "identifier": {"external_id": "m1"}, "channel": "inbox"},
+    ])
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/inbox")
+
+    client.organization.inbox.count(source="default", external_id="o", channel="inbox")
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/inbox/count")
+
+    client.organization.inbox.mark_read([{"target": [{"external_id": "o"}], "message_id": "m1"}])
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/inbox/read")
+
+    client.organization.inbox.mark_archived([{"target": [{"external_id": "o"}], "message_id": "m1"}])
+    assert last(captured)["url"].endswith(f"{PREFIX}organizations/inbox/archived")
+
+
+def test_upsert_accepts_a_generated_model(captured):
+    client = Lunogram(API_KEY, PROJECT_ID)
+    client.user.upsert(IdentifyRequest.model_validate({
+        "identifier": [{"source": "default", "external_id": "u"}],
+        "email": "a@b.com",
+    }))
+    body = json.loads(last(captured)["data"])
+    assert body["identifier"][0]["external_id"] == "u"
+    assert body["email"] == "a@b.com"
+    # exclude_none drops unset optional fields
+    assert "phone" not in body
+
+
+def test_empty_2xx_response_is_treated_as_success():
+    # Async endpoints reply 202/204 with no body; that must not surface as the
+    # "(response, error)" failure tuple.
+    def fake_request(method, url, data=None, params=None, headers=None):
+        resp = MagicMock()
+        resp.status_code = 202
+        resp.content = b""
+        return resp
+
+    with patch("lunogram.app.http.requests.request", side_effect=fake_request):
+        client = Lunogram(API_KEY, PROJECT_ID)
+        result = client.user.events.post([{"name": "e", "identifier": [{"external_id": "u"}], "data": {}}])
+        assert not isinstance(result, tuple)
+        assert result.status_code == 202
