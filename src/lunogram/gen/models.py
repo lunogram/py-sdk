@@ -407,6 +407,10 @@ class OrganizationEvent(BaseModel):
 
 
 class UpsertUserScheduledRequest(BaseModel):
+    id: UUID | None = Field(None, examples=['a1b2c3d4-e5f6-7890-abcd-ef1234567890'])
+    """
+    The id of the schedule assignment. Omit to create a new assignment (multiple assignments may share the same name per user); supply an existing id to update that assignment in place. The id is returned in the response.
+    """
     name: str = Field(..., examples=['renewal_date'])
     """
     The name of the scheduled resource
@@ -433,6 +437,10 @@ class UpsertUserScheduledRequest(BaseModel):
 
 
 class UpsertOrganizationScheduledRequest(BaseModel):
+    id: UUID | None = Field(None, examples=['a1b2c3d4-e5f6-7890-abcd-ef1234567890'])
+    """
+    The id of the schedule assignment. Omit to create a new assignment (multiple assignments may share the same name per organization); supply an existing id to update that assignment in place. The id is returned in the response.
+    """
     name: str = Field(..., examples=['contract_renewal'])
     """
     The name of the scheduled resource
@@ -459,11 +467,15 @@ class UpsertOrganizationScheduledRequest(BaseModel):
 
 
 class DeleteUserScheduledRequest(BaseModel):
-    name: str = Field(..., examples=['renewal_date'])
+    id: UUID | None = Field(None, examples=['a1b2c3d4-e5f6-7890-abcd-ef1234567890'])
     """
-    The name of the scheduled resource to delete
+    The id of a specific schedule assignment to delete. When provided, only that instance is removed. Either id or name is required.
     """
-    identifier: UserIdentifier | None = None
+    name: str | None = Field(None, examples=['renewal_date'])
+    """
+    The name of the scheduled resource to delete. When provided (and id is omitted), every assignment with this name for the user is removed. Either id or name is required.
+    """
+    identifier: UserIdentifier
 
 
 class ScheduledAccepted(BaseModel):
@@ -486,9 +498,13 @@ class ScheduledAccepted(BaseModel):
 
 
 class DeleteOrganizationScheduledRequest(BaseModel):
-    name: str = Field(..., examples=['contract_renewal'])
+    id: UUID | None = Field(None, examples=['a1b2c3d4-e5f6-7890-abcd-ef1234567890'])
     """
-    The name of the scheduled resource to delete
+    The id of a specific schedule assignment to delete. When provided, only that instance is removed. Either id or name is required.
+    """
+    name: str | None = Field(None, examples=['contract_renewal'])
+    """
+    The name of the scheduled resource to delete. When provided (and id is omitted), every assignment with this name for the organization is removed. Either id or name is required.
     """
     identifier: OrganizationIdentifier
 

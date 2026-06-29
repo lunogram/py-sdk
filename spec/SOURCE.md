@@ -7,7 +7,7 @@ platform **release**. It is the single input to the code generator
 | | |
 | --- | --- |
 | Source repo | https://github.com/lunogram/platform |
-| Pinned tag | `v0.1.0-rc.1` |
+| Pinned tag | `v0.1.0-rc.2` |
 | Spec asset | `client.yaml` |
 
 Every tagged platform release publishes the client OpenAPI spec as a `client.yaml`
@@ -18,7 +18,7 @@ checkout or branch pin required.
 ## Release asset URL
 
 ```
-https://github.com/lunogram/platform/releases/download/v0.1.0-rc.1/client.yaml
+https://github.com/lunogram/platform/releases/download/v0.1.0-rc.2/client.yaml
 ```
 
 ## Refreshing the spec
@@ -26,7 +26,7 @@ https://github.com/lunogram/platform/releases/download/v0.1.0-rc.1/client.yaml
 To track a newer release, update the **Pinned tag** above and re-fetch:
 
 ```bash
-TAG=v0.1.0-rc.1
+TAG=v0.1.0-rc.2
 curl -fsSL "https://github.com/lunogram/platform/releases/download/$TAG/client.yaml" -o spec/client.yaml
 make generate
 ```
